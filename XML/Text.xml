@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text -->
+<!-- Author: blkbutterfly74 -->
+<!-- DateCreated: 1/15/2018 11:30:50 PM -->
+<GameData>
+	<FrontEndText>
+
+		<!-- Texts for Maps -->
+		<Row Tag="LOC_MAP_ARCTIC_NAME">
+			<Text>Scrambled Arctic Ocean</Text>
+		</Row>
+		<Row Tag="LOC_MAP_ARCTIC_DESCRIPTION">
+			<Text>An internally randomized map of the Arctic Ocean.</Text>
+		</Row>
+
+	</FrontEndText>
+</GameData>
+
