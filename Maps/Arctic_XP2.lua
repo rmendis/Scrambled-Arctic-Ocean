@@ -659,7 +659,7 @@ function AddFeatures()
 	local args = {rainfall = rainfall, iJunglePercent = 0, iMarshPercent = 4, iForestPercent = 55, iIcePercent = 25, iReefPercent = 0}	-- no rainforest
 	featuregen = FeatureGenerator.Create(args);
 
-	featuregen:AddFeatures(true, true);  --second parameter is whether or not rivers start inland);
+	featuregen:AddFeatures(true, false);  --second parameter is whether or not rivers start inland);
 
 	-- add forest more densely at edges
 	for iX = 0, g_iW - 1 do
