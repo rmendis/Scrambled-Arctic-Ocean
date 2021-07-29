@@ -709,6 +709,7 @@ function GenerateTerrainTypesArctic(plotTypes, iW, iH, iFlags, bNoCoastalMountai
 			local index = (iY * iW) + iX;
 
 			local iDistanceFromCenter = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);
+			local lat = GetRadialLatitudeAtPlot(arctic, iX, iY);
 
 			local iSnowTop = arctic:GetHeight(100);	
 			local iSnowBottom = arctic:GetHeight(75);
@@ -720,14 +721,14 @@ function GenerateTerrainTypesArctic(plotTypes, iW, iH, iFlags, bNoCoastalMountai
 			local iPlainsBottom = arctic:GetHeight(10);
 
 			-- north pole
-			if (iDistanceFromCenter < 35) then
+			if (lat > 0.1 and iDistanceFromCenter < 35) then
 				if (plotTypes[index] == g_PLOT_TYPE_MOUNTAIN) then
 					terrainTypes[index] = g_TERRAIN_TYPE_SNOW_MOUNTAIN;
 				elseif (plotTypes[index] ~= g_PLOT_TYPE_OCEAN) then
 					terrainTypes[index] = g_TERRAIN_TYPE_SNOW;
 				end
 
-			elseif (iDistanceFromCenter < 40) then
+			elseif (lat > 0.15 and iDistanceFromCenter < 40) then
 				local tundraVal = arctic:GetHeight(iX, iY);
 				
 				if (plotTypes[index] == g_PLOT_TYPE_MOUNTAIN) then
@@ -745,7 +746,7 @@ function GenerateTerrainTypesArctic(plotTypes, iW, iH, iFlags, bNoCoastalMountai
 				end
 
 			-- arctic circle
-			elseif (iDistanceFromCenter < 45) then
+			elseif (lat > 0.3 and iDistanceFromCenter < 45) then
 				local tundraVal = arctic:GetHeight(iX, iY);
 				local plainsVal = arctic:GetHeight(iX, iY);
 
@@ -832,13 +833,13 @@ end
 ------------------------------------------------------------------------------
 
 function FeatureGenerator:AddIceAtPlot(plot, iX, iY)
-	local iV = TerrainBuilder.GetRandomNumber(15, "Random variance");
+	local lat = GetRadialLatitudeAtPlot(arctic, iX, iY);
 	local iDistanceFromCenter = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial
 	
-	if (iDistanceFromCenter + iV < 45) then
+	if (lat > 0.3 and iDistanceFromCenter < 45) then
 		local iScore = TerrainBuilder.GetRandomNumber(100, "Resource Placement Score Adjust");
 
-		iScore = iScore + ((g_iH/2 - iDistanceFromCenter)/(g_iH/2)  * 100);
+		iScore = iScore + lat * 100;
 
 		if(IsAdjacentToLandPlot(iX,iY) == true) then
 			iScore = iScore / 2.0;
@@ -857,4 +858,24 @@ end
 -- bugfix/patch - remember pythagoras?
 function __GetPlotDistance(iX1, iY1, iX0, iY0)
 	return math.sqrt((iX1-iX0)^2 + (iY1-iY0)^2);
+end
+
+-------------------------------------------------------------------------------------------
+-- LATITUDE LOOKUP
+----------------------------------------------------------------------------------
+function GetRadialLatitudeAtPlot(variationFrac, iX, iY)
+	local iZ = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial distance from center
+
+	local iEq = math.sqrt(g_iW^2 + g_iH^2)/4;		-- equatorial distance from natural map center
+
+	-- Terrain bands are governed by latitude.
+	-- Returns a latitude value between 0.0 (tropical) and 1.0 (polar).
+	local lat = math.abs((iEq - iZ)/iEq);
+	
+	-- Adjust latitude using variation fractal, to roughen the border between bands:
+	lat = lat + (128 - variationFrac:GetHeight(iX, iY))/(255.0 * 5.0);
+	-- Limit to the range [0, 1]:
+	lat = math.clamp(lat, 0, 1);
+	
+	return lat;
 end

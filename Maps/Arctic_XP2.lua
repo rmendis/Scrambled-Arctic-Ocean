@@ -963,16 +963,16 @@ function FeatureGenerator:AddIceToMap()
 		end
 	end
 end
-------------------------------------------------------------------------------
 
+------------------------------------------------------------------------------
 function AddIceAtPlot(plot, iX, iY, iE)
 	local lat = GetRadialLatitudeAtPlot(arctic, iX, iY);
 	local iDistanceFromCenter = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial distance from center
 	
-	if (lat > 0.3 and iDistanceFromCenter < 45) then
+	if(lat > 0.3 and iDistanceFromCenter < 45) then
 		local iScore = TerrainBuilder.GetRandomNumber(100, "Resource Placement Score Adjust");
 
-		iScore = iScore + ((g_iH/2 - iDistanceFromCenter)/(g_iH/2)  * 100);
+		iScore = iScore + lat * 100;
 
 		if(IsAdjacentToLandPlot(iX,iY) == true) then
 			iScore = iScore / 2.0;
