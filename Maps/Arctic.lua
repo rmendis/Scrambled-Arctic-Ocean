@@ -19,7 +19,8 @@ include "AssignStartingPlots"
 local g_iW, g_iH;
 local g_iFlags = {};
 local g_continentsFrac = nil;
-local g_iNumTotalLandTiles = 0; 
+local g_iNumTotalLandTiles = 0;
+local g_iE;
 
 -- north pole
 local g_CenterX = 49;
@@ -32,6 +33,8 @@ function GenerateMap()
 
 	-- Set globals
 	g_iW, g_iH = Map.GetGridSize();
+	g_iE = math.sqrt(g_iW^2 + g_iH^2)/4;		-- equatorial distance from natural map center
+
 	g_iFlags = TerrainBuilder.GetFractalFlags();
 	local temperature = 0;
 	
@@ -863,14 +866,14 @@ end
 -------------------------------------------------------------------------------------------
 -- LATITUDE LOOKUP
 ----------------------------------------------------------------------------------
+g_iE = math.sqrt(g_iW^2 + g_iH^2)/4;		-- equatorial distance from natural map center
+
 function GetRadialLatitudeAtPlot(variationFrac, iX, iY)
 	local iZ = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial distance from center
 
-	local iEq = math.sqrt(g_iW^2 + g_iH^2)/4;		-- equatorial distance from natural map center
-
 	-- Terrain bands are governed by latitude.
 	-- Returns a latitude value between 0.0 (tropical) and 1.0 (polar).
-	local lat = math.abs((iEq - iZ)/iEq);
+	local lat = math.abs((g_iE - iZ)/g_iE);
 	
 	-- Adjust latitude using variation fractal, to roughen the border between bands:
 	lat = lat + (128 - variationFrac:GetHeight(iX, iY))/(255.0 * 5.0);
