@@ -22,11 +22,13 @@ local g_iFlags = {};
 local g_continentsFrac = nil;
 local g_iNumTotalLandTiles = 0; 
 local featuregen = nil;
-local g_iE;
+local arctic = nil;
 
 -- north pole
 local g_CenterX = 49;
 local g_CenterY = 52;
+
+local g_iE = 185;		-- approx. distance to equator from north pole
 
 -------------------------------------------------------------------------------
 function GenerateMap()
@@ -35,7 +37,6 @@ function GenerateMap()
 
 	-- Set globals
 	g_iW, g_iH = Map.GetGridSize();
-	g_iE = math.sqrt(g_iW^2 + g_iH^2)/4;		-- equatorial distance from natural map center
 
 	g_iFlags = TerrainBuilder.GetFractalFlags();
 	local temperature = 0;
@@ -725,14 +726,14 @@ function GenerateTerrainTypesArctic(plotTypes, iW, iH, iFlags, bNoCoastalMountai
 			local iPlainsBottom = arctic:GetHeight(10);
 
 			-- north pole
-			if (lat > 0.1 and iDistanceFromCenter < 35) then
+			if (lat > 0.82) then
 				if (plotTypes[index] == g_PLOT_TYPE_MOUNTAIN) then
 					terrainTypes[index] = g_TERRAIN_TYPE_SNOW_MOUNTAIN;
 				elseif (plotTypes[index] ~= g_PLOT_TYPE_OCEAN) then
 					terrainTypes[index] = g_TERRAIN_TYPE_SNOW;
 				end
 
-			elseif (lat > 0.15 and iDistanceFromCenter < 40) then
+			elseif (lat > 0.79) then
 				local tundraVal = arctic:GetHeight(iX, iY);
 				
 				if (plotTypes[index] == g_PLOT_TYPE_MOUNTAIN) then
@@ -750,7 +751,7 @@ function GenerateTerrainTypesArctic(plotTypes, iW, iH, iFlags, bNoCoastalMountai
 				end
 
 			-- arctic circle
-			elseif (lat > 0.3 and iDistanceFromCenter < 45) then
+			elseif (lat > 0.75) then
 				local tundraVal = arctic:GetHeight(iX, iY);
 				local plainsVal = arctic:GetHeight(iX, iY);
 
@@ -897,10 +898,10 @@ function FeatureGenerator:AddIceToMap()
 		for x = 0, self.iGridW - 1, 1 do
 			for y = self.iGridH - 1, 0, -1 do
 				local i = y * self.iGridW + x;
-				local iDistanceFromCenter = __GetPlotDistance(x, y, g_CenterX, g_CenterY);
+				local lat = GetRadialLatitudeAtPlot(arctic, x, y);
 
 				-- arctic ice sheet core
-				if (iDistanceFromCenter < 18) then
+				if (lat > 0.9) then
 					local plot = Map.GetPlotByIndex(i);
 					if (plot ~= nil) then
 						if(TerrainBuilder.CanHaveFeature(plot, g_FEATURE_ICE) == true and IsAdjacentToLandPlot(x, y) == false) then
@@ -970,21 +971,20 @@ end
 ------------------------------------------------------------------------------
 function AddIceAtPlot(plot, iX, iY, iE)
 	local lat = GetRadialLatitudeAtPlot(arctic, iX, iY);
-	local iDistanceFromCenter = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial distance from center
 	
-	if(lat > 0.3 and iDistanceFromCenter < 45) then
+	if (lat > 0.85) then
 		local iScore = TerrainBuilder.GetRandomNumber(100, "Resource Placement Score Adjust");
 
 		iScore = iScore + lat * 100;
 
-		if(IsAdjacentToLandPlot(iX,iY) == true) then
+		if (IsAdjacentToLandPlot(iX,iY) == true) then
 			iScore = iScore / 2.0;
 		end
 
 		local iAdjacent = TerrainBuilder.GetAdjacentFeatureCount(plot, g_FEATURE_ICE);
 		iScore = iScore + 10.0 * iAdjacent;
 
-		if(iScore > 130) then
+		if (iScore > 130) then
 			TerrainBuilder.SetFeatureType(plot, g_FEATURE_ICE);
 			TerrainBuilder.AddIce(plot:GetIndex(), iE); 
 		end
