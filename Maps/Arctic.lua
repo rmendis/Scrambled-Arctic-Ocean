@@ -20,11 +20,13 @@ local g_iW, g_iH;
 local g_iFlags = {};
 local g_continentsFrac = nil;
 local g_iNumTotalLandTiles = 0;
-local g_iE;
+local arctic = nil;
 
 -- north pole
 local g_CenterX = 49;
 local g_CenterY = 52;
+
+local g_iE = 185;		-- approx. distance to equator from north pole
 
 -------------------------------------------------------------------------------
 function GenerateMap()
@@ -33,7 +35,6 @@ function GenerateMap()
 
 	-- Set globals
 	g_iW, g_iH = Map.GetGridSize();
-	g_iE = math.sqrt(g_iW^2 + g_iH^2)/4;		-- equatorial distance from natural map center
 
 	g_iFlags = TerrainBuilder.GetFractalFlags();
 	local temperature = 0;
@@ -724,14 +725,14 @@ function GenerateTerrainTypesArctic(plotTypes, iW, iH, iFlags, bNoCoastalMountai
 			local iPlainsBottom = arctic:GetHeight(10);
 
 			-- north pole
-			if (lat > 0.1 and iDistanceFromCenter < 35) then
+			if (lat > 0.82) then
 				if (plotTypes[index] == g_PLOT_TYPE_MOUNTAIN) then
 					terrainTypes[index] = g_TERRAIN_TYPE_SNOW_MOUNTAIN;
 				elseif (plotTypes[index] ~= g_PLOT_TYPE_OCEAN) then
 					terrainTypes[index] = g_TERRAIN_TYPE_SNOW;
 				end
 
-			elseif (lat > 0.15 and iDistanceFromCenter < 40) then
+			elseif (lat > 0.79) then
 				local tundraVal = arctic:GetHeight(iX, iY);
 				
 				if (plotTypes[index] == g_PLOT_TYPE_MOUNTAIN) then
@@ -749,7 +750,7 @@ function GenerateTerrainTypesArctic(plotTypes, iW, iH, iFlags, bNoCoastalMountai
 				end
 
 			-- arctic circle
-			elseif (lat > 0.3 and iDistanceFromCenter < 45) then
+			elseif (lat > 0.75) then
 				local tundraVal = arctic:GetHeight(iX, iY);
 				local plainsVal = arctic:GetHeight(iX, iY);
 
@@ -837,9 +838,8 @@ end
 
 function FeatureGenerator:AddIceAtPlot(plot, iX, iY)
 	local lat = GetRadialLatitudeAtPlot(arctic, iX, iY);
-	local iDistanceFromCenter = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial
 	
-	if (lat > 0.3 and iDistanceFromCenter < 45) then
+	if (lat > 0.85) then
 		local iScore = TerrainBuilder.GetRandomNumber(100, "Resource Placement Score Adjust");
 
 		iScore = iScore + lat * 100;
@@ -866,8 +866,6 @@ end
 -------------------------------------------------------------------------------------------
 -- LATITUDE LOOKUP
 ----------------------------------------------------------------------------------
-g_iE = math.sqrt(g_iW^2 + g_iH^2)/4;		-- equatorial distance from natural map center
-
 function GetRadialLatitudeAtPlot(variationFrac, iX, iY)
 	local iZ = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial distance from center
 
