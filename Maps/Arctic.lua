@@ -79,7 +79,7 @@ function GenerateMap()
 	resourcesConfig = MapConfiguration.GetValue("resources");
 	local args = {
 		resources = resourcesConfig,
-		iWaterLux = 2,
+		iWaterLux = 4,
 	}
 	local resGen = ResourceGenerator.Create(args);
 
@@ -93,7 +93,7 @@ function GenerateMap()
 		START_MIN_Y = 15,
 		START_MAX_Y = 15,
 		START_CONFIG = startConfig,
-		LAND = true,
+		WATER = true,
 	};
 	local start_plot_database = AssignStartingPlots.Create(args)
 
