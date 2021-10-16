@@ -1008,17 +1008,31 @@ end
 -------------------------------------------------------------------------------------------
 -- LATITUDE LOOKUP
 ----------------------------------------------------------------------------------
-function GetRadialLatitudeAtPlot(variationFrac, iX, iY)
-	local iZ = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);	-- radial distance from center
+function _GetRadialLatitudeAtPlot(variationFrac, iX, iY)
+	local iZ = __GetPlotDistance(iX, iY, g_CenterX, g_CenterY);		-- radial distance from center
 
-	-- Terrain bands are governed by latitude.
-	-- Returns a latitude value between 0.0 (tropical) and 1.0 (polar).
-	local lat = math.abs((g_iE - iZ)/g_iE);
+	if (iZ < 2*g_iE) then
+		-- Terrain bands are governed by latitude (in rad).
+		local _lat = 1/2 - iZ/(2*g_iE);
+
+		-- Returns a latitude value between 0.0 (tropical) and +/-1.0 (polar).
+		local lat = 2 * _lat;
 	
-	-- Adjust latitude using variation fractal, to roughen the border between bands:
-	lat = lat + (128 - variationFrac:GetHeight(iX, iY))/(255.0 * 5.0);
-	-- Limit to the range [0, 1]:
-	lat = math.clamp(lat, 0, 1);
+		-- Adjust latitude using variation fractal, to roughen the border between bands:
+		-- lessen the variation at south pole
+		lat = lat + (128 - variationFrac:GetHeight(iX, iY))/(255.0 * 5.0) * (1 - iZ/(2*g_iE));
+
+		-- Limit to the range [-1, 1]:
+		lat = math.clamp(lat, -1, 1);
 	
-	return lat;
+		return lat;
+	else
+		-- off the map (south pole) 
+		return -1;
+	end
+end
+
+-- Returns a latitude value between 0.0 (tropical) and 1.0 (polar).
+function GetRadialLatitudeAtPlot(variationFrac, iX, iY)
+	return math.abs(_GetRadialLatitudeAtPlot(variationFrac, iX, iY));
 end
